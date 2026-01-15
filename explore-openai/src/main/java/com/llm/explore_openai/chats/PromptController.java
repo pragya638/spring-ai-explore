@@ -14,7 +14,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.llm.explore_openai.dto.UserInput;
+import com.llm.explore_openai.dto.event.EventPlanResponse;
+
 import org.springframework.ai.chat.messages.UserMessage;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -125,5 +128,33 @@ Explain closures with example in JavaScript.
         return "I don't know about that.";
     }
 }
+@PostMapping("/v1/event/plan")
+public EventPlanResponse planEvent(@RequestBody UserInput userInput) throws Exception {
+
+    // 🔹 STRICT system message for structured output
+    SystemMessage systemMessage = new SystemMessage("""
+You are an event planning backend engine.
+
+STRICT RULES:
+- Respond ONLY with valid JSON
+- Do NOT add explanations, markdown, or text outside JSON
+- JSON keys MUST match exactly:
+  eventType, location, date, numberOfPeople,
+  foodArrangement, activities, budgetEstimate
+- If information is missing, use null
+- Think internally, do NOT expose reasoning
+""");
+
+    // 🔹 User message
+    UserMessage userMessage = new UserMessage(userInput.prompt());
+
+    Prompt prompt = new Prompt(List.of(systemMessage, userMessage));
+
+    String response = chatClient.prompt(prompt).call().content();
+
+    // 🔹 Convert JSON → DTO
+    return new ObjectMapper().readValue(response, EventPlanResponse.class);
+}
+
 
 }
