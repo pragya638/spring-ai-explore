@@ -23,6 +23,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map; 
+
+import org.springframework.ai.parser.BeanOutputParser;
+
 /*
  * PromptController
  * ----------------
@@ -156,5 +159,25 @@ STRICT RULES:
     return new ObjectMapper().readValue(response, EventPlanResponse.class);
 }
 
+@PostMapping("/v1/event/plan/entity")
+public EventPlanResponse planEventWithEntity(@RequestBody UserInput userInput){
+    //define the entity parser
+    BeanOutputParser<EventPlanResponse> parser=
+    new BeanOutputParser<>(EventPlanResponse.class);
 
+
+    SystemMessage systemMessage=new SystemMessage(""" 
+        You are an event planning engine.
+Extract event details and return structured data.
+""" + parser.getFormat());
+
+    UserMessage userMessage = new UserMessage(userInput.prompt());
+
+    Prompt prompt = new Prompt(List.of(systemMessage, userMessage));
+
+    return chatClient
+           .prompt(prompt)
+          .call()
+             .entity(EventPlanResponse.class);
+}
 }
