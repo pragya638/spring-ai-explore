@@ -13,11 +13,13 @@ import org.springframework.web.bind.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.llm.explore_openai.dto.UserInput;
 import com.llm.explore_openai.dto.event.EventPlanResponse;
+import com.llm.explore_openai.tools.CurrentTimeTool;
 
 import java.util.List;
 import java.util.Map;
 
 @RestController
+@RequestMapping("/prompts")
 public class PromptController {
 
     private static final org.slf4j.Logger log =
@@ -25,7 +27,10 @@ public class PromptController {
 
     private final ChatClient chatClient;
 
-    public PromptController(ChatClient.Builder chatClientBuilder) {
+    private final CurrentTimeTool timeTool;
+
+    public PromptController(ChatClient.Builder chatClientBuilder,CurrentTimeTool timeTool) {
+        this.timeTool=timeTool;
         this.chatClient = chatClientBuilder.build();
     }
 
@@ -121,4 +126,28 @@ public class PromptController {
                 .call()
                 .entity(new ParameterizedTypeReference<Map<String, Object>>() {});
     }
+
+
+
+ 
+
+       @GetMapping("/chat")
+public String chat(@RequestParam String question) {
+
+    if (question.toLowerCase().contains("time")) {
+        String time = java.time.LocalDateTime.now().toString();
+
+        return chatClient.prompt()
+                .user("Format this nicely: current server time is " + time)
+                .call()
+                .content();
+    }
+
+    return chatClient.prompt()
+            .user(question)
+            .call()
+            .content();
+}
+
+
 }
