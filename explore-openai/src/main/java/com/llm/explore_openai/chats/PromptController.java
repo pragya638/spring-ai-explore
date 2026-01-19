@@ -128,26 +128,48 @@ public class PromptController {
     }
 
 
-
- 
-
-       @GetMapping("/chat")
+@GetMapping("/chat")
 public String chat(@RequestParam String question) {
 
-    if (question.toLowerCase().contains("time")) {
-        String time = java.time.LocalDateTime.now().toString();
+    // ✅ STEP 1: NORMALIZE INPUT (THIS IS THE KEY)
+    String q = question
+            .toLowerCase()
+            .replaceAll("[^a-z ]", "")   // remove ?, . ! etc
+            .replaceAll("\\s+", " ")     // normalize spaces
+            .trim();
 
-        return chatClient.prompt()
-                .user("Format this nicely: current server time is " + time)
-                .call()
-                .content();
+    // DEBUG (optional but helpful)
+    System.out.println("NORMALIZED QUESTION = [" + q + "]");
+
+    // ✅ STEP 2: REGION MATCHING (JAVA ONLY)
+    if (q.contains("india")) {
+        return timeForZone("Asia/Kolkata", "India");
     }
 
+    if (q.contains("uk") || q.contains("london")) {
+        return timeForZone("Europe/London", "UK");
+    }
+
+    if (q.contains("new york") || q.contains("usa") || q.contains("america")) {
+        return timeForZone("America/New_York", "USA (New York)");
+    }
+
+    if (q.contains("california") || q.contains("los angeles")) {
+        return timeForZone("America/Los_Angeles", "USA (California)");
+    }
+
+    if (q.contains("japan")) {
+        return timeForZone("Asia/Tokyo", "Japan");
+    }
+
+    // 🤖 STEP 3: ONLY IF NO MATCH → LLM
     return chatClient.prompt()
             .user(question)
             .call()
             .content();
 }
-
-
+private String timeForZone(String zoneId, String label) {
+    return "Current time in " + label + " is: " +
+            java.time.ZonedDateTime.now(java.time.ZoneId.of(zoneId));
+}
 }
