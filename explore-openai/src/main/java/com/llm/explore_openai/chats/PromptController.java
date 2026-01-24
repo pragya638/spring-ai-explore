@@ -1,129 +1,199 @@
 package com.llm.explore_openai.chats;
 
-import java.lang.System.Logger;
-
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.ChatClient.CallResponseSpec;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
-import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.chat.prompt.PromptTemplate;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.llm.explore_openai.dto.UserInput;
 import org.springframework.ai.chat.messages.UserMessage;
-import java.util.ArrayList;
-import java.util.HashMap;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.parser.BeanOutputParser;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.web.bind.annotation.*;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.llm.explore_openai.dto.UserInput;
+import com.llm.explore_openai.dto.event.EventPlanResponse;
+import com.llm.explore_openai.tools.CurrentTimeTool;
+import com.llm.explore_openai.tools.WeatherTool;
+
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map; 
-/*
- * PromptController
- * ----------------
- * This controller acts as a GATEKEEPER before calling the AI.
- * It filters user prompts, adds system instructions, and then
- * sends a structured prompt to the AI using Spring AI ChatClient.
- */
+import java.util.Map;
+
 @RestController
+@RequestMapping("/prompts")
 public class PromptController {
-     // Logger for debugging & tracking requests/responses
-private static final org.slf4j.Logger log =
-        LoggerFactory.getLogger(PromptController.class);
 
-    // ChatClient is the main Spring AI abstraction to talk to LLMs
-private final ChatClient chatClient;
+    private static final org.slf4j.Logger log =
+            LoggerFactory.getLogger(PromptController.class);
 
-/*
-     * Constructor-based dependency injection.
-     * ChatClient.Builder is auto-configured by Spring AI.
-     */
-    public PromptController( ChatClient.Builder  chatClientBuilder) {
+    private final ChatClient chatClient;
 
+    private final CurrentTimeTool timeTool;
+
+    private final WeatherTool weatherTool;
+
+    public PromptController(ChatClient.Builder chatClientBuilder,CurrentTimeTool timeTool, WeatherTool weatherTool) {
+        this.timeTool=timeTool;
+        this.weatherTool=weatherTool;
         this.chatClient = chatClientBuilder.build();
     }
- private boolean isJavaSpringQuestion(String prompt){
-        String p=prompt.toLowerCase();
-        return p.contains("java") || p.contains("spring")|| p.contains("jvm")
-            || p.contains("spring")
-            || p.contains("oop")
-            || p.contains("collection")
-            || p.contains("thread")
-            || p.contains("exception")
-            || p.contains("hibernate")|| p.contains("jpa")
-            || p.contains("microservice")|| p.contains("rest api")||p.contains("spring");
-    }
-/*
-     * POST API to accept user prompt and return AI response.
-     *
-     * URL: POST /v1/prompts
-     * Input: JSON { "prompt": "your question" }
-     * Output: AI-generated text OR fallback message
-     */
-   @PostMapping("/v1/prompts")
-public String prompts(@RequestBody UserInput userInput) {
 
-    if (!isJavaSpringQuestion(userInput.prompt())) {
-        return "I don't know, but I'm sure it's interesting!";
-    }
+    /* -------------------------------------------------------
+       1️⃣ BASIC PROMPT (NO STRUCTURE)
+       ------------------------------------------------------- */
+    @PostMapping("/v1/prompts")
+    public String prompts(@RequestBody UserInput userInput) {
 
-
-    var systemMessage = new SystemMessage("""
-        You are a Java and Spring Boot expert.
-        Answer clearly with examples.
-        """);
-
-    var userMessage1 = new UserMessage(userInput.prompt());
-
-
-    var assistantHint = new SystemMessage("""
-        Keep answers short and interview-friendly.
-        """);
-
-    Prompt prompt = new Prompt(
-        List.of(systemMessage, assistantHint, userMessage1)
-    );
-
-    var response = chatClient.prompt(prompt).call();
-
-    return response.content();
-}
-// Dynamic prompt with template injection
-@PostMapping("/dynamic")
-public String dynamicPrompt(
-        @RequestParam String language,
-        @RequestParam String question) {
-
-    log.info("Dynamic prompt called | language={}, question={}", language, question);
-
-    if (language == null || question == null ||
-        language.isBlank() || question.isBlank()) {
-        return "I don't know about that.";
-    }
-
-    try {
-        // 🔹 SYSTEM message (HIGHEST PRIORITY)
         SystemMessage systemMessage = new SystemMessage("""
-IGNORE ALL PREVIOUS INSTRUCTIONS.
-You MUST answer ONLY in JavaScript.
-If you use Python, you are WRONG.
-Explain closures with example in JavaScript.
-""");
+            You are a Java and Spring Boot expert.
+            Answer clearly with examples.
+        """);
 
-
-        // 🔹 USER message (ONLY the question)
-        UserMessage userMessage = new UserMessage(question);
-
-        Prompt prompt = new Prompt(List.of(systemMessage, userMessage));
+        Prompt prompt = new Prompt(
+                List.of(systemMessage, new UserMessage(userInput.prompt()))
+        );
 
         return chatClient.prompt(prompt).call().content();
-
-    } catch (Exception e) {
-        log.error("Error in /dynamic", e);
-        return "I don't know about that.";
     }
+
+    /* -------------------------------------------------------
+       2️⃣ MANUAL JSON → OBJECTMAPPER (LEARNING MODE)
+       ------------------------------------------------------- */
+    @PostMapping("/v1/event/plan")
+    public EventPlanResponse planEvent(@RequestBody UserInput userInput) throws Exception {
+
+        SystemMessage systemMessage = new SystemMessage("""
+            You are an event planning backend engine.
+            Respond ONLY with valid JSON.
+            Do not add extra text.
+        """);
+
+        String response = chatClient
+                .prompt()
+                .call()
+                .content();
+
+        log.info("Raw LLM JSON: {}", response);
+
+        return new ObjectMapper().readValue(response, EventPlanResponse.class);
+    }
+
+    /* -------------------------------------------------------
+       3️⃣ ENTITY / FUNCTION-STYLE (BEST PRACTICE)
+       ------------------------------------------------------- */
+    @PostMapping("/v1/event/plan/entity")
+    public EventPlanResponse planEventWithEntity(@RequestBody UserInput userInput) {
+
+        BeanOutputParser<EventPlanResponse> parser =
+                new BeanOutputParser<>(EventPlanResponse.class);
+
+        SystemMessage systemMessage = new SystemMessage("""
+            You are an event planning engine.
+            Extract event details.
+        """ + parser.getFormat());
+
+        return chatClient
+                .prompt()
+                .call()
+                .entity(EventPlanResponse.class);
+    }
+
+    /* -------------------------------------------------------
+       4️⃣ PARAMETERIZED TYPE REFERENCE (LIGHT STRUCTURE)
+       ------------------------------------------------------- */
+    @PostMapping("/v1/event/plan/typed")
+    public EventPlanResponse planEventTyped(@RequestBody UserInput userInput) {
+
+        SystemMessage systemMessage = new SystemMessage("""
+            Return ONLY valid JSON matching an event plan.
+            Do not add explanations.
+        """);
+
+        return chatClient
+                .prompt()
+                .call()
+                .entity(new ParameterizedTypeReference<EventPlanResponse>() {});
+    }
+
+    /* -------------------------------------------------------
+       5️⃣ MAP OUTPUT (VERY FLEXIBLE, LOW SAFETY)
+       ------------------------------------------------------- */
+    @PostMapping("/v1/event/plan/map")
+    public Map<String, Object> planEventAsMap(@RequestBody UserInput userInput) {
+
+        SystemMessage systemMessage = new SystemMessage("""
+            Return ONLY valid JSON.
+        """);
+
+        return chatClient
+                .prompt()
+                .call()
+                .entity(new ParameterizedTypeReference<Map<String, Object>>() {});
+    }
+@GetMapping("/chat")
+public String chat(@RequestParam String question) {
+
+    String q = question.toLowerCase();
+
+    if (q.contains("weather")) {
+        String city = extractCity(q);
+        return formatWeather(weatherTool.getWeather(city));
+    }
+
+    return chatClient.prompt()
+            .user(question)
+            .call()
+            .content();
+}
+
+@SuppressWarnings("unchecked")
+private String formatWeather(Map<String, Object> weather) {
+
+    // 🔴 Safety checks
+    if (weather == null || weather.containsKey("error")) {
+        return "⚠️ Weather service unavailable for this location.";
+    }
+
+    Map<String, Object> main = (Map<String, Object>) weather.get("main");
+    List<Map<String, Object>> weatherList =
+            (List<Map<String, Object>>) weather.get("weather");
+
+    if (main == null || weatherList == null || weatherList.isEmpty()) {
+        return "⚠️ Weather data incomplete.";
+    }
+
+    Map<String, Object> weatherDetails = weatherList.get(0);
+
+    String description = (String) weatherDetails.get("description");
+    double temperature = ((Number) main.get("temp")).doubleValue();
+    int humidity = ((Number) main.get("humidity")).intValue();
+    String city = (String) weather.get("name");
+
+    return String.format(
+            "🌦 Current weather in %s: %s, Temperature: %.1f°C, Humidity: %d%%",
+            city, description, temperature, humidity
+    );
+}
+
+
+private String extractCity(String q) {
+
+    q = q.toLowerCase();
+
+    if (q.contains("delhi")) return "Delhi,IN";
+    if (q.contains("london")) return "London,GB";
+    if (q.contains("new york")) return "New York,US";
+    if (q.contains("tokyo")) return "Tokyo,JP";
+    if (q.contains("paris")) return "Paris,FR";
+    if (q.contains("berlin")) return "Berlin,DE";
+    if (q.contains("mumbai")) return "Mumbai,IN";
+    if (q.contains("bangalore")) return "Bangalore,IN";
+
+    // 🟡 fallback (VERY important)
+    return null;
 }
 
 }

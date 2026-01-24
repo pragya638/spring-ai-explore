@@ -1,0 +1,20 @@
+Name: Pragya Dwivedi
+
+Education:
+B.Tech Computer Science, AKTU
+
+Projects:
+1. Zoo Management System using Spring Boot
+   - REST APIs
+   - Dependency Injection
+   - MySQL
+   -Hibernate
+
+Skills:
+Java, Spring Boot, Git, SQL, Basics of Spring AI
+
+Hobby:
+Dancing,crafting 
+
+Experience:
+Fresher
