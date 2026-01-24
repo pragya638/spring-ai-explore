@@ -14,7 +14,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.llm.explore_openai.dto.UserInput;
 import com.llm.explore_openai.dto.event.EventPlanResponse;
 import com.llm.explore_openai.tools.CurrentTimeTool;
+import com.llm.explore_openai.tools.WeatherTool;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -29,8 +33,11 @@ public class PromptController {
 
     private final CurrentTimeTool timeTool;
 
-    public PromptController(ChatClient.Builder chatClientBuilder,CurrentTimeTool timeTool) {
+    private final WeatherTool weatherTool;
+
+    public PromptController(ChatClient.Builder chatClientBuilder,CurrentTimeTool timeTool, WeatherTool weatherTool) {
         this.timeTool=timeTool;
+        this.weatherTool=weatherTool;
         this.chatClient = chatClientBuilder.build();
     }
 
@@ -126,50 +133,67 @@ public class PromptController {
                 .call()
                 .entity(new ParameterizedTypeReference<Map<String, Object>>() {});
     }
-
-
 @GetMapping("/chat")
 public String chat(@RequestParam String question) {
 
-    // ✅ STEP 1: NORMALIZE INPUT (THIS IS THE KEY)
-    String q = question
-            .toLowerCase()
-            .replaceAll("[^a-z ]", "")   // remove ?, . ! etc
-            .replaceAll("\\s+", " ")     // normalize spaces
-            .trim();
+    String q = question.toLowerCase();
 
-    // DEBUG (optional but helpful)
-    System.out.println("NORMALIZED QUESTION = [" + q + "]");
-
-    // ✅ STEP 2: REGION MATCHING (JAVA ONLY)
-    if (q.contains("india")) {
-        return timeForZone("Asia/Kolkata", "India");
+    if (q.contains("weather")) {
+        String city = extractCity(q);
+        return formatWeather(weatherTool.getWeather(city));
     }
 
-    if (q.contains("uk") || q.contains("london")) {
-        return timeForZone("Europe/London", "UK");
-    }
-
-    if (q.contains("new york") || q.contains("usa") || q.contains("america")) {
-        return timeForZone("America/New_York", "USA (New York)");
-    }
-
-    if (q.contains("california") || q.contains("los angeles")) {
-        return timeForZone("America/Los_Angeles", "USA (California)");
-    }
-
-    if (q.contains("japan")) {
-        return timeForZone("Asia/Tokyo", "Japan");
-    }
-
-    // 🤖 STEP 3: ONLY IF NO MATCH → LLM
     return chatClient.prompt()
             .user(question)
             .call()
             .content();
 }
-private String timeForZone(String zoneId, String label) {
-    return "Current time in " + label + " is: " +
-            java.time.ZonedDateTime.now(java.time.ZoneId.of(zoneId));
+
+@SuppressWarnings("unchecked")
+private String formatWeather(Map<String, Object> weather) {
+
+    // 🔴 Safety checks
+    if (weather == null || weather.containsKey("error")) {
+        return "⚠️ Weather service unavailable for this location.";
+    }
+
+    Map<String, Object> main = (Map<String, Object>) weather.get("main");
+    List<Map<String, Object>> weatherList =
+            (List<Map<String, Object>>) weather.get("weather");
+
+    if (main == null || weatherList == null || weatherList.isEmpty()) {
+        return "⚠️ Weather data incomplete.";
+    }
+
+    Map<String, Object> weatherDetails = weatherList.get(0);
+
+    String description = (String) weatherDetails.get("description");
+    double temperature = ((Number) main.get("temp")).doubleValue();
+    int humidity = ((Number) main.get("humidity")).intValue();
+    String city = (String) weather.get("name");
+
+    return String.format(
+            "🌦 Current weather in %s: %s, Temperature: %.1f°C, Humidity: %d%%",
+            city, description, temperature, humidity
+    );
 }
+
+
+private String extractCity(String q) {
+
+    q = q.toLowerCase();
+
+    if (q.contains("delhi")) return "Delhi,IN";
+    if (q.contains("london")) return "London,GB";
+    if (q.contains("new york")) return "New York,US";
+    if (q.contains("tokyo")) return "Tokyo,JP";
+    if (q.contains("paris")) return "Paris,FR";
+    if (q.contains("berlin")) return "Berlin,DE";
+    if (q.contains("mumbai")) return "Mumbai,IN";
+    if (q.contains("bangalore")) return "Bangalore,IN";
+
+    // 🟡 fallback (VERY important)
+    return null;
+}
+
 }

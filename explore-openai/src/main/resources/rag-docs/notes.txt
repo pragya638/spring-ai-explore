@@ -1,0 +1,4 @@
+Spring AI provides abstractions for chat models, embeddings, tools, and RAG.
+RAG stands for Retrieval Augmented Generation.
+RAG reduces hallucination by grounding LLM responses in external documents.
+Vector stores are used to store embeddings for similarity search.

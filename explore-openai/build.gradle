@@ -35,6 +35,8 @@ dependencies {
 
     // Validation (for @NotBlank)
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    // Thymeleaf
+ implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
