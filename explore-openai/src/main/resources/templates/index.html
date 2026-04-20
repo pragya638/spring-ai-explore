@@ -1,155 +1,316 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>AI Memory Hook Teacher</title>
+<title>AI Memory Hook Teacher 🧠</title>
 
 <style>
-  body {
-    background: linear-gradient(135deg, #fdf2f8, #ede9fe);
-    font-family: system-ui;
+body {
+    margin: 0;
+    font-family: "Poppins", system-ui;
+    background: linear-gradient(135deg, #fde2ff, #e0f2fe);
     height: 100vh;
     display: flex;
-    align-items: center;
     justify-content: center;
-    color: #1e293b;
+    align-items: center;
 }
 
-.card {
+.container {
     width: 420px;
-    background: #ffffff;
-    padding: 28px;
-    border-radius: 20px;
-    box-shadow: 0 25px 50px rgba(88,28,135,0.15);
+    height: 80vh;
+    background: white;
+    border-radius: 25px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
-textarea {
-    width: 100%;
-    height: 80px;
-    padding: 16px;
-    border-radius: 14px;
-    border: 1px solid #ddd6fe;
-    font-size: 16px;
-    line-height: 1.5;
-    background: #faf5ff;
+.header {
+    padding: 15px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 18px;
+    background: linear-gradient(135deg, #a855f7, #ec4899);
+    color: white;
+    position: relative;
+}
+
+.clear-btn {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    background: white;
+    color: #a855f7;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.chat {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.message {
+    max-width: 75%;
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.4;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.user {
+    background: #a855f7;
+    color: white;
+}
+
+.bot {
+    background: #f3f4f6;
     color: #1e293b;
-    resize: none;
-    box-sizing: border-box;
 }
 
+.input-box {
+    display: flex;
+    padding: 12px;
+    border-top: 1px solid #eee;
+}
 
-textarea::placeholder {
-    color: #7c3aed;
+input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    outline: none;
 }
 
 button {
-    margin-top: 16px;
-    width: 100%;
-    padding: 14px;
-    border-radius: 14px;
+    margin-left: 10px;
+    padding: 10px 16px;
+    border-radius: 12px;
     border: none;
     background: linear-gradient(135deg, #a855f7, #ec4899);
     color: white;
-    font-weight: 600;
-    font-size: 16px;
     cursor: pointer;
 }
 
-.output {
-    margin-top: 18px;
-    padding: 14px;
-    border-radius: 12px;
-    background: #fdf4ff;
-    color: #4c1d95;
-    font-size: 15px;
-    display: none;
-}
-
-.status {
-    margin-top: 10px;
-    font-size: 13px;
-    color: #6b21a8;
-    text-align: center;
-    display: none;
-}
 .loading {
-    margin-top: 14px;
-    font-size: 14px;
-    color: #7c3aed;
-    text-align: center;
-    display: none;
+    font-size: 13px;
+    color: gray;
+    margin-bottom: 10px;
 }
 
+.dots::after {
+    content: "...";
+    animation: dots 1.5s steps(3, end) infinite;
+}
 
+@keyframes dots {
+    0% { content: ""; }
+    33% { content: "."; }
+    66% { content: ".."; }
+    100% { content: "..."; }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 </style>
 </head>
 
 <body>
 
-<div class="card">
-    <h2>🧠 AI Memory Hook Teacher</h2>
+<div class="container">
 
-    <textarea id="prompt"
-        placeholder="Ask any topic… e.g. Stack, Queue, OSI layers"></textarea>
+    <div class="header">
+        🧠 AI Memory Hook Teacher
+        <button class="clear-btn" onclick="clearChat()">Clear</button>
+    </div>
 
-    <button onclick="generate()">Generate & Speak</button>
-<div class="loading" id="loading">⏳ Generating memory hook…</div>
+    <div class="chat" id="chat"></div>
 
-    <!-- AI spoken text -->
-    <div class="output" id="output"></div>
+    <div class="input-box">
+    <input id="input" placeholder="Ask any topic... 💭"/>
+    <button onclick="startListening()">🎤</button>
+    <button onclick="send()">Send</button>
+</div>
 
-    <div class="status" id="status">🔊 Speaking…</div>
-
-    <audio id="audio"></audio>
 </div>
 
 <script>
-async function generate() {
-    const topic = document.getElementById("prompt").value.trim();
-    if (!topic) return alert("Please type a topic");
 
-    const audio = document.getElementById("audio");
-    const output = document.getElementById("output");
-    const loading = document.getElementById("loading");
-    const button = document.querySelector("button");
-    const textarea = document.getElementById("prompt");
+window.onload = () => {
+    addMessage("Hey 👋 I’ll teach you anything with simple explanation + memory tricks!", "bot");
 
-    // UI → loading state
+    document.getElementById("input").addEventListener("keypress", function(e) {
+        if (e.key === "Enter") {
+            send();
+        }
+    });
+};
+
+async function send() {
+
+    const input = document.getElementById("input");
+    const button = document.querySelector(".input-box button");
+
+    const text = input.value.trim();
+    if (!text) return;
+
     button.disabled = true;
-    textarea.disabled = true;
-    loading.style.display = "block";
-    output.style.display = "none";
+    input.disabled = true;
+
+    addMessage(text, "user");
+    input.value = "";
+
+    const loader = addLoading();
 
     try {
-        // 1️⃣ Get memory hook text
-        const textRes = await fetch(
-            `/ai/memory-hook?topic=${encodeURIComponent(topic)}`
-        );
-        const hookText = await textRes.text();
+        const res = await fetch("/ai/ask", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ topic: text })
+        });
 
-        // show text immediately
-        output.innerText = `"${hookText}"`;
-        output.style.display = "block";
+        if (!res.ok) throw new Error("Server error");
 
-        // 2️⃣ Get audio & speak immediately
-        const audioRes = await fetch(
-            `/ai-teacher/speak?topic=${encodeURIComponent(topic)}`
-        );
+        const data = await res.json();
 
-        const blob = await audioRes.blob();
-        audio.src = URL.createObjectURL(blob);
-        audio.play();
+        loader.remove();
+
+        const responseText = `
+            <b>Explanation:</b><br>${data.explanation || "No explanation"}<br><br>
+            <b>Memory Hook:</b><br>${data.hook || "No hook"}
+        `;
+
+        addMessage(responseText, "bot");
+
+        // 🔊 Browser TTS
+        const fullText = (data.explanation || "") + ". " + (data.hook || "");
+        speak(fullText);
 
     } catch (e) {
-        alert("Something went wrong");
+        loader.remove();
+        addMessage("⚠️ Something went wrong.", "bot");
     } finally {
-        
-        loading.style.display = "none";
         button.disabled = false;
-        textarea.disabled = false;
+        input.disabled = false;
+        input.focus();
     }
 }
-</script>
 
+function addMessage(text, type) {
+    const chat = document.getElementById("chat");
+
+    const wrapper = document.createElement("div");
+    wrapper.style.display = "flex";
+    wrapper.style.alignItems = "flex-start";
+    wrapper.style.marginBottom = "10px";
+    wrapper.style.gap = "8px";
+
+    const avatar = document.createElement("div");
+    avatar.innerText = type === "user" ? "👩‍💻" : "🤖";
+    avatar.style.fontSize = "18px";
+
+    const bubble = document.createElement("div");
+    bubble.className = "message " + type;
+    bubble.innerHTML = text;
+
+    if (type === "user") {
+        wrapper.style.justifyContent = "flex-end";
+        wrapper.appendChild(bubble);
+        wrapper.appendChild(avatar);
+    } else {
+        wrapper.appendChild(avatar);
+        wrapper.appendChild(bubble);
+    }
+
+    chat.appendChild(wrapper);
+    chat.scrollTop = chat.scrollHeight;
+}
+
+function addLoading() {
+    const chat = document.getElementById("chat");
+
+    const div = document.createElement("div");
+    div.className = "loading";
+    div.innerHTML = "🤖 typing<span class='dots'></span>";
+
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+
+    return div;
+}
+
+async function clearChat() {
+    if (!confirm("Clear chat?")) return;
+
+    document.getElementById("chat").innerHTML = "";
+
+    await fetch("/ai/clear", { method: "POST" });
+}
+
+function speak(text) {
+    if (!text) return;
+
+    const speech = new SpeechSynthesisUtterance(text);
+    speech.lang = "en-US";
+    speech.rate = 0.95;
+    speech.pitch = 1;
+
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(speech);
+}
+function startListening() {
+
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Speech recognition not supported in this browser");
+        return;
+    }
+
+    const recognition = new webkitSpeechRecognition();
+
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+
+    recognition.start();
+
+    recognition.onstart = () => {
+        console.log("Listening 🎤...");
+    };
+
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        console.log("You said:", transcript);
+
+        document.getElementById("input").value = transcript;
+
+        // auto send (optional)
+        send();
+    };
+
+    recognition.onerror = (event) => {
+        console.error("Mic error:", event.error);
+        alert("Mic error: " + event.error);
+    };
+    recognition.onend = () => {
+    console.log("Stopped listening");
+};
+}
+
+</script>
 
 </body>
 </html>

@@ -1,5 +1,6 @@
 package com.llm.explore_openai.controller;
 
+import com.llm.explore_openai.dto.MemoryHookResponse;
 import com.llm.explore_openai.service.MemoryHookService;
 import com.llm.explore_openai.service.TtsService;
 import org.springframework.http.*;
@@ -19,11 +20,14 @@ public class AiTeacherController {
     }
 
     @GetMapping(value = "/speak", produces = "audio/wav")
-    public byte[] speak(@RequestParam String topic) throws Exception {
-        String hook = memoryHookService.generateMemoryHook(topic);
-        return ttsService.generateSpeechBytes(hook);
-    }
+public byte[] speak(@RequestParam String topic) throws Exception {
+
+    MemoryHookResponse response = memoryHookService.generateMemoryHook(topic);
+
+    String fullText = response.getExplanation() + ". " + response.getHook();
+
+    return ttsService.generateSpeechBytes(fullText);
+}
 }
 
-//this controller combines memory hook generation and TTS functionality
-//it exposes a REST endpoint that takes a topic, generates a memory hook using the MemoryHookService, converts that text to speech using the TtsService, and returns the audio bytes as a response
+// This controller provides an endpoint for the AI Teacher feature. It generates a memory hook based on the provided topic and then converts the explanation and hook into speech using the TTS service, returning the audio as a byte array.

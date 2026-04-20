@@ -2,10 +2,10 @@ package com.llm.explore_openai.service;
 
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class TtsService {
@@ -30,16 +30,32 @@ public class TtsService {
         pb.redirectErrorStream(true);
         Process process = pb.start();
 
-        process.getOutputStream().write(text.getBytes(StandardCharsets.UTF_8));
-        process.getOutputStream().close();
+        // Send text
+        try (OutputStream os = process.getOutputStream()) {
+    os.write(text.getBytes(StandardCharsets.UTF_8));
+    os.flush();   
+}
 
-        int exit = process.waitFor();
-        if (exit != 0 || !tempFile.exists() || tempFile.length() == 0) {
-            throw new RuntimeException("Piper TTS failed");
+        // Capture logs (IMPORTANT)
+        BufferedReader reader = new BufferedReader(
+                new InputStreamReader(process.getInputStream())
+        );
+
+        String line;
+        while ((line = reader.readLine()) != null) {
+            System.out.println("Piper: " + line);
+        }
+
+        boolean finished = process.waitFor(20, TimeUnit.SECONDS);
+
+        if (!finished || process.exitValue() != 0 ||
+                !tempFile.exists() || tempFile.length() == 0) {
+            throw new RuntimeException("TTS generation failed");
         }
 
         byte[] audio = Files.readAllBytes(tempFile.toPath());
-        tempFile.delete(); // cleanup
+
+        tempFile.delete();
 
         return audio;
     }
