@@ -1,81 +1,63 @@
 # 🧠 AI Memory Hook Teacher
 
-An AI-powered learning assistant that helps students understand computer science concepts using **memory hooks + voice (Text-to-Speech)**.
+An AI-powered learning assistant that helps students understand concepts using:
+
+* ✅ Simple explanations
+* 🧠 Memory hooks (easy recall tricks)
+* 🔊 Voice output (Text-to-Speech)
+* 🎤 Voice input (Speech-to-Text)
 
 ---
 
 ## 🚀 Features
 
-* 🔹 Generate **easy-to-remember memory hooks**
-* 🔹 **Text-to-Speech (TTS)** for audio learning
-* 🔹 Clean and simple **frontend UI**
-* 🔹 Designed for **CS students & beginners**
+* 💬 Chat-style UI (like ChatGPT)
+* 🧠 Smart explanations with real-life examples
+* 🔊 Auto voice playback of answers
+* 🎤 Ask questions using microphone
+* 🗂️ Chat memory (remembers previous conversation)
+* ⚡ Fast API using Spring Boot
+* 🧩 RAG support (context-based answers)
 
 ---
 
-## 🛠 Tech Stack
+## 🏗️ Tech Stack
 
-* **Spring Boot**
-* **Spring AI**
-* **LLM (Ollama / OpenAI compatible)**
-* **Text-to-Speech (Piper / local TTS)**
-* **HTML, CSS, JavaScript**
+### Backend:
 
----
+* Java + Spring Boot
+* Spring AI (LLM integration)
+* REST APIs
 
-## 📸 Demo (Example)
+### Frontend:
 
-**Input:**
-
-> What is Stack?
-
-**Output:**
-
-> "Stack works on LIFO — Last In, First Out!"
-
-🔊 Voice plays automatically after generation.
+* HTML, CSS, JavaScript
+* Web Speech API (TTS + STT)
 
 ---
 
-## 🧩 Project Structure
+## 📸 Demo
 
-```
-explore-openai/
-├── src/main/java/com/llm/explore_openai
-│   ├── controller
-│   ├── service
-│   ├── chats
-│   ├── rag
-│   └── tools
-├── src/main/resources
-│   ├── templates
-│   ├── rag-docs
-│   └── application.properties
-```
+<img width="400" src="your-screenshot-link-here" />
 
 ---
 
-## ▶️ How to Run
+## ⚙️ How to Run Locally
 
-1. Clone the repo
+### 1. Clone repo
 
 ```bash
-git clone https://github.com/pragya638/spring-ai-explore.git
+git clone https://github.com/your-username/your-repo.git
+cd your-repo/explore-openai
 ```
 
-2. Go to project folder
-
-```bash
-cd explore-openai
-```
-
-3. Run Spring Boot app
+### 2. Run project
 
 ```bash
 ./gradlew bootRun
 ```
 
-4. Open browser:
+### 3. Open browser
 
 ```
 http://localhost:8080
@@ -83,29 +65,54 @@ http://localhost:8080
 
 ---
 
-## 🎯 Use Case
+## 🌐 Deployment
 
-* CS students revising concepts
-* Audio-based learning
-* Memory-based explanations
-* Beginner-friendly AI tutor
+This project can be deployed using:
+
+* ✅ Render (Recommended)
+* Railway
+* AWS / Azure (advanced)
+
+### Render Setup:
+
+* Build Command:
+
+```
+./gradlew build
+```
+
+* Start Command:
+
+```
+java -jar build/libs/*.jar
+```
 
 ---
 
-## 🌱 Future Improvements
+## ⚠️ Notes
 
-* Mobile responsive UI
-* Multiple voice options
-* Save generated hooks
-* Quiz mode
+* 🎤 Mic works only on HTTPS (Chrome recommended)
+* 🔊 Voice uses browser Speech API (no backend TTS needed)
+* Free hosting may be slow on first load
 
 ---
 
-## 🙌 Author
+## 🎯 Future Improvements
+
+* Dark mode 🌙
+* User login system 🔐
+* Save chat history 📂
+* Multi-language support 🌍
+* Voice selection 🎙️
+
+---
+
+## 👩‍💻 Author
 
 **Pragya Dwivedi**
-Learning Spring AI | Backend Developer | CS Student
 
 ---
 
-⭐ If you like this project, give it a star!
+## ⭐ If you like this project
+
+Give it a ⭐ on GitHub and share!
