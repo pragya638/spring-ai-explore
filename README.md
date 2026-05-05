@@ -52,79 +52,79 @@ User can listen to response or ask by voice
 
 ---
 
-⚙️ Run Locally
-1. Clone repository
-git clone https://github.com/your-username/spring-ai-explore.gitcd spring-ai-explore/explore-openai
-2. Start Ollama
-ollama serve
-3. Pull required models
-ollama pull llama3ollama pull nomic-embed-text
-4. Run project
-./gradlew bootRun
-5. Open browser
-http://localhost:8080
+## ⚙️ Run Locally
 
-⚠️ Requirements
+### 1. Clone repository
+
+```bash
+git clone https://github.com/your-username/spring-ai-explore.git
+cd spring-ai-explore/explore-openai
+```
+
+### 2. Start Ollama
+
+```bash
+ollama serve
+```
+
+### 3. Pull required models
+
+```bash
+ollama pull llama3
+ollama pull nomic-embed-text
+```
+
+### 4. Run project
+
+```bash
+./gradlew bootRun
+```
+
+### 5. Open browser
+
+```bash
+http://localhost:8080
+```
+
+---
+
+## ⚠️ Requirements
+
 Make sure these are installed before running:
 
+* Java 17
+* Gradle
+* Ollama
 
-Java 17
+---
 
+## 📌 Notes
 
-Gradle
+* This project runs fully local using Ollama
+* No paid API key required
+* Mic input works best in Chrome
+* Voice output uses browser speech synthesis
+* First response may be slightly slow depending on local model speed
 
+---
 
-Ollama
+## 🎯 Future Improvements
 
+* Dark mode
+* Save chat history
+* Better long-term memory
+* Multi-language support
+* Export notes
+* User login
 
+---
 
-📌 Notes
+## 👩‍💻 Author
 
-
-This project runs fully local using Ollama
-
-
-No paid API key required
-
-
-Mic input works best in Chrome
-
-
-Voice output uses browser speech synthesis
-
-
-First response may be slightly slow depending on local model speed
-
-
-
-🎯 Future Improvements
-
-
-Dark mode
-
-
-Save chat history
-
-
-Better long-term memory
-
-
-Multi-language support
-
-
-Export notes
-
-
-User login
-
-
-
-👩‍💻 Author
 **Pragya Dwivedi**
 
-⭐ Support
+---
+
+## ⭐ Support
+
 If you found this useful, star the repo.
-
-
-
-
