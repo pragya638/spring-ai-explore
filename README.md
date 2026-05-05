@@ -1,118 +1,55 @@
 # 🧠 AI Memory Hook Teacher
 
-An AI-powered learning assistant that helps students understand concepts using:
+AI Memory Hook Teacher is a local AI-powered learning assistant that explains topics in simple language and helps users remember them using short memory tricks.
 
-* ✅ Simple explanations
-* 🧠 Memory hooks (easy recall tricks)
-* 🔊 Voice output (Text-to-Speech)
-* 🎤 Voice input (Speech-to-Text)
+It is designed for students who want:
+- simple explanations
+- real-world examples
+- fast revision
+- easy recall using memory hooks
 
 ---
 
-## 🚀 Features
+## ✨ Features
 
-* 💬 Chat-style UI (like ChatGPT)
-* 🧠 Smart explanations with real-life examples
-* 🔊 Auto voice playback of answers
-* 🎤 Ask questions using microphone
-* 🗂️ Chat memory (remembers previous conversation)
-* ⚡ Fast API using Spring Boot
-* 🧩 RAG support (context-based answers)
+- 💬 Chat-style learning interface
+- 🧠 Simple topic explanations
+- 🎯 Smart memory hooks for recall
+- 🔊 Text-to-Speech (browser voice)
+- 🎤 Speech-to-Text (mic input)
+- 🗂️ Short conversational memory
+- ⚡ Fast Spring Boot backend
+- 🧩 Context-aware prompting
 
 ---
 
 ## 🏗️ Tech Stack
 
-### Backend:
+### Backend
+- Java 17
+- Spring Boot
+- Spring AI
+- Ollama (local LLM)
+- REST APIs
 
-* Java + Spring Boot
-* Spring AI (LLM integration)
-* REST APIs
+### Frontend
+- HTML
+- CSS
+- JavaScript
+- Web Speech API
 
-### Frontend:
-
-* HTML, CSS, JavaScript
-* Web Speech API (TTS + STT)
-
----
-
-## 📸 Demo
-
-<img width="400" src="your-screenshot-link-here" />
-
----
-
-## ⚙️ How to Run Locally
-
-### 1. Clone repo
-
-```bash
-git clone https://github.com/your-username/your-repo.git
-cd your-repo/explore-openai
-```
-
-### 2. Run project
-
-```bash
-./gradlew bootRun
-```
-
-### 3. Open browser
-
-```
-http://localhost:8080
-```
+### AI Models
+- `llama3` → explanations
+- `nomic-embed-text` → embeddings
 
 ---
 
-## 🌐 Deployment
+## 🚀 How It Works
 
-This project can be deployed using:
-
-* ✅ Render (Recommended)
-* Railway
-* AWS / Azure (advanced)
-
-### Render Setup:
-
-* Build Command:
-
-```
-./gradlew build
-```
-
-* Start Command:
-
-```
-java -jar build/libs/*.jar
-```
+User enters a topic →  
+AI explains it in simple words →  
+AI generates a memory trick →  
+User can listen to response or ask by voice
 
 ---
 
-## ⚠️ Notes
-
-* 🎤 Mic works only on HTTPS (Chrome recommended)
-* 🔊 Voice uses browser Speech API (no backend TTS needed)
-* Free hosting may be slow on first load
-
----
-
-## 🎯 Future Improvements
-
-* Dark mode 🌙
-* User login system 🔐
-* Save chat history 📂
-* Multi-language support 🌍
-* Voice selection 🎙️
-
----
-
-## 👩‍💻 Author
-
-**Pragya Dwivedi**
-
----
-
-## ⭐ If you like this project
-
-Give it a ⭐ on GitHub and share!
